@@ -1,0 +1,33 @@
+{% extends "visor/base.html" %}
+{% block title %}Cargar archivos de datos{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Cargar archivos de datos</h1>
+
+<!-- Mensajes de éxito -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-success">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<!-- Formulario para cargar archivo de sucursales -->
+<form method="post" enctype="multipart/form-data" class="mb-4">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Archivo de sucursales (.xlsx)</label>
+    <input type="file" name="archivo_sucs" class="form-control" accept=".xlsx" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Cargar sucursales</button>
+</form>
+
+<!-- Formulario para cargar archivo de zonas -->
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Archivo de zonas (.xlsx)</label>
+    <input type="file" name="archivo_zonas" class="form-control" accept=".xlsx" required>
+  </div>
+  <button type="submit" class="btn btn-secondary">Cargar zonas</button>
+</form>
+{% endblock %}

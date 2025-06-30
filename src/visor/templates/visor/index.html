@@ -1,0 +1,31 @@
+{% extends "visor/base.html" %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Seleccioná una sucursal</h1>
+
+<form onsubmit="return redirigirSucursal()" class="row g-3">
+  <div class="col-md-6">
+    <select id="sucursalSelect" class="form-select" required>
+      <option value="">Elegí una sucursal...</option>
+      {% for suc in sucursales %}
+        <option value="{{ suc.suc_id }}">{{ suc.suc_id }} - {{ suc.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <button type="submit" class="btn btn-primary">Ir</button>
+  </div>
+</form>
+
+<script>
+  function redirigirSucursal() {
+    const codigo = document.getElementById("sucursalSelect").value;
+    if (codigo) {
+      window.location.href = `/sucursal/${codigo}/`;
+    }
+    return false; // Previene que se recargue la página
+  }
+</script>
+{% endblock %}
