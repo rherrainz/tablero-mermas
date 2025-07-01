@@ -7,10 +7,12 @@
 <!-- Mensajes de éxito -->
 {% if messages %}
   {% for message in messages %}
-    <div class="alert alert-success">{{ message }}</div>
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
   {% endfor %}
 {% endif %}
-
 <!-- Formulario para cargar archivo de sucursales -->
 <form method="post" enctype="multipart/form-data" class="mb-4">
   {% csrf_token %}
@@ -30,4 +32,16 @@
   </div>
   <button type="submit" class="btn btn-secondary">Cargar zonas</button>
 </form>
+
+  <!-- Formulario para cargar archivo de plan -->
+  <form method="post" enctype="multipart/form-data" class="mb-4 border p-3 rounded">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label"><strong>Archivo de plan de mermas (.xlsx)</strong></label>
+      <input type="file" name="archivo_plan" class="form-control" accept=".xlsx" required>
+    </div>
+    <button type="submit" class="btn btn-success">Cargar plan de mermas</button>
+  </form>
+
 {% endblock %}
+

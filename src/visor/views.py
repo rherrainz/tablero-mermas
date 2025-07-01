@@ -6,6 +6,10 @@ from django.contrib import messages
 import pandas as pd
 from django.conf import settings
 from django.http import JsonResponse
+from utils.plan_loader import cargar_plan_desde_excel
+from pathlib import Path
+
+
 
 def index(request):
     sucursales = Sucursal.objects.all().order_by('suc_id')
@@ -32,6 +36,14 @@ def cargar_excel(request):
             archivo = request.FILES['archivo_zonas']
             default_storage.save('datos_zonas.xlsx', archivo)
             messages.success(request, 'Archivo de zonas cargado correctamente.')
+        
+        if 'archivo_plan' in request.FILES:
+            borrar_archivo_si_existe('plan.xlsx')
+            archivo = request.FILES['archivo_plan']
+            default_storage.save('plan.xlsx', archivo)
+            messages.success(request, 'Archivo de plan de mermas cargado correctamente.')
+            path = Path(settings.MEDIA_ROOT) / 'plan.xlsx'
+            cargar_plan_desde_excel(path)
 
         return redirect('cargar_excel')
 
