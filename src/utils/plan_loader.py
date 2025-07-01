@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 from visor.models import PlanMerma
-from const.sectores import SECTORES  # Asegurate de que esté bien importado
+from const.sectores import SECTORES  # Importación correcta
 
 def cargar_plan_desde_excel(ruta_excel: Path):
     df = pd.read_excel(ruta_excel)
@@ -13,15 +13,17 @@ def cargar_plan_desde_excel(ruta_excel: Path):
     for index, fila in df.iterrows():
         try:
             sucursal = str(fila['sucursal']).strip()
-            sector = str(fila['sector']).strip()
+            sector = str(fila['sector']).strip().upper()
             plan = float(fila['plan'])
 
-            if sector not in SECTORES:
+            # Permitimos 'TOT' explícitamente
+            if sector != 'TOT' and sector not in SECTORES:
                 print(f"⚠️  Sector inválido en fila {index + 2}: '{sector}' no está en SECTORES")
                 errores += 1
                 continue
 
-            if not -10.0 <= plan <= 10.0:
+            # Ampliamos el rango permitido
+            if not -50.0 <= plan <= 50.0:
                 print(f"⚠️  Porcentaje fuera de rango en fila {index + 2}: {plan}")
                 errores += 1
                 continue

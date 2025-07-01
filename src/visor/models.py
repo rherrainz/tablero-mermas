@@ -1,13 +1,27 @@
 from django.db import models
 
-class Sucursal(models.Model):
-    suc_id = models.PositiveIntegerField(primary_key=True)  # Código de 3 dígitos
-    nombre = models.CharField(max_length=100)
-    zona = models.CharField(max_length=100)
-    region = models.CharField(max_length=100)
+class Region(models.Model):
+    codigo = models.CharField(max_length=20, unique=True)
+    nombre = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
-        return f"{self.suc_id} - {self.nombre}"
+        return self.nombre
+
+class Zona(models.Model):
+    codigo = models.CharField(max_length=20, unique=True)
+    nombre = models.CharField(max_length=100)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.nombre} ({self.codigo})"
+
+class Sucursal(models.Model):
+    codigo = models.CharField(max_length=10, unique=True)
+    nombre = models.CharField(max_length=100)
+    zona = models.ForeignKey(Zona, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return f"{self.nombre} ({self.codigo})"
 
 class PlanMerma(models.Model):
     sucursal = models.CharField(max_length=10)

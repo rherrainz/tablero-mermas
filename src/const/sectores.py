@@ -12,4 +12,5 @@ SECTORES = {
     "02_032": "ROTISERIA Y PASTAS",
     "02_035": "CARNICERIA",
     "02_037": "FRUTAS Y VERDURAS",
+    "TOT": "TOTAL",
 }
