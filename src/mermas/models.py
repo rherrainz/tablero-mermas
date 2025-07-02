@@ -1,38 +1,42 @@
 from django.db import models
+from visor.models import Zona, Sucursal
 
 class Sector(models.Model):
-    codigo = models.CharField(max_length=10,unique=True)
+    codigo = models.CharField(max_length=10, unique=True)
     nombre = models.CharField(max_length=100)
 
     def __str__(self):
-        return f"{self.codigo} - {self.nombre}"
-
+        return f"{self.nombre} ({self.codigo})"
 
 class MermaSucursal(models.Model):
-    sucursal = models.ForeignKey("visor.Sucursal", on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
-    cantidad_mermas = models.PositiveIntegerField()
-    monto_mermas = models.DecimalField(max_digits=12, decimal_places=2)
-    unidades_vendidas = models.PositiveIntegerField()
-    venta_sin_iva = models.DecimalField(max_digits=12, decimal_places=2)
-    porcentaje_mermas_ventas = models.DecimalField(max_digits=5, decimal_places=2)
-    monto_ajuste = models.DecimalField(max_digits=12, decimal_places=2)
-    porcentaje_ajuste_sobre_merma = models.DecimalField(max_digits=5, decimal_places=2)
-    monto_merma_no_ajustada = models.DecimalField(max_digits=12, decimal_places=2)
-    porcentaje_no_ajustada_sobre_merma = models.DecimalField(max_digits=5, decimal_places=2)
-    fecha = models.DateField()
+    cantidad_mermas = models.FloatField()
+    monto_mermas = models.FloatField()
+    unidades_vendidas = models.IntegerField()
+    monto_venta = models.FloatField()
+    porcentaje_mermas_sobre_venta = models.FloatField()
+    monto_ajuste = models.FloatField()
+    porcentaje_ajuste_sobre_merma = models.FloatField()
+    monto_mermas_no_ajustadas = models.FloatField()
+    porcentaje_mermas_no_ajustadas = models.FloatField()
 
+    def __str__(self):
+        return f"{self.sucursal} - {self.sector}"
 
 class MermaZona(models.Model):
-    zona = models.ForeignKey("visor.Zona", on_delete=models.CASCADE)
+    zona = models.ForeignKey(Zona, on_delete=models.CASCADE)
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
-    cantidad_mermas = models.PositiveIntegerField()
-    monto_mermas = models.DecimalField(max_digits=12, decimal_places=2)
-    unidades_vendidas = models.PositiveIntegerField()
-    venta_sin_iva = models.DecimalField(max_digits=12, decimal_places=2)
-    porcentaje_mermas_ventas = models.DecimalField(max_digits=5, decimal_places=2)
-    monto_ajuste = models.DecimalField(max_digits=12, decimal_places=2)
-    porcentaje_ajuste_sobre_merma = models.DecimalField(max_digits=5, decimal_places=2)
-    monto_merma_no_ajustada = models.DecimalField(max_digits=12, decimal_places=2)
-    porcentaje_no_ajustada_sobre_merma = models.DecimalField(max_digits=5, decimal_places=2)
-    fecha = models.DateField()
+    cantidad_mermas = models.FloatField()
+    monto_mermas = models.FloatField()
+    unidades_vendidas = models.IntegerField()
+    monto_venta = models.FloatField()
+    porcentaje_mermas_sobre_venta = models.FloatField()
+    monto_ajuste = models.FloatField()
+    porcentaje_ajuste_sobre_merma = models.FloatField()
+    monto_mermas_no_ajustadas = models.FloatField()
+    porcentaje_mermas_no_ajustadas = models.FloatField()
+
+    def __str__(self):
+        return f"{self.zona} - {self.sector}"
+

@@ -8,11 +8,12 @@ from django.conf import settings
 from django.http import JsonResponse
 from utils.plan_loader import cargar_plan_desde_excel
 from pathlib import Path
+from utils.mermas_loader import cargar_mermas_sucursal, cargar_mermas_zona
 
 
 
 def index(request):
-    sucursales = Sucursal.objects.all().order_by('suc_id')
+    sucursales = Sucursal.objects.all().order_by('codigo')
     return render(request, 'visor/index.html', {'sucursales': sucursales})
 
 def sucursal_view(request, codigo):
@@ -44,6 +45,22 @@ def cargar_excel(request):
             messages.success(request, 'Archivo de plan de mermas cargado correctamente.')
             path = Path(settings.MEDIA_ROOT) / 'plan.xlsx'
             cargar_plan_desde_excel(path)
+
+        if 'archivo_mermas_sucs' in request.FILES:
+            borrar_archivo_si_existe('archivo_mermas_sucs.xlsx')
+            archivo = request.FILES['archivo_mermas_sucs']
+            default_storage.save('archivo_mermas_sucs.xlsx', archivo)
+            messages.success(request, 'Archivo de mermas por sucursal cargado correctamente.')
+            path = Path(settings.MEDIA_ROOT) / 'archivo_mermas_sucs.xlsx'
+            cargar_mermas_sucursal(path)
+
+        if 'archivo_mermas_zonas' in request.FILES:
+            borrar_archivo_si_existe('archivo_mermas_zonas.xlsx')
+            archivo = request.FILES['archivo_mermas_zonas']
+            default_storage.save('archivo_mermas_zonas.xlsx', archivo)
+            messages.success(request, 'Archivo de mermas por zona cargado correctamente.')
+            path = Path(settings.MEDIA_ROOT) / 'archivo_mermas_zonas.xlsx'
+            cargar_mermas_zona(path)
 
         return redirect('cargar_excel')
 
