@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'visor',
     'mermas',
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [

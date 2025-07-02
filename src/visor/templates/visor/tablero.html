@@ -1,0 +1,63 @@
+{% extends "visor/base.html" %} {% load humanize %} {% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">
+    Tablero de Mermas - Sucursal {{ sucursal.codigo }} {{ sucursal.nombre }}
+    (Zona {{ zona.nombre }})
+  </h2>
+  <div class="row mb-4">
+    <!-- Columna 1: Porcentajes -->
+    <div class="col-md-4 mb-3">
+      <div class="border rounded p-3 bg-light text-center mb-3">
+        <h6 class="fw-bold">Merma % Sucursal</h6>
+        <div class="alert alert-{{ alerta_merma_pct }} py-1 mb-0 fw-bold">
+          {{ merma_total_sucursal_pct|floatformat:2 }}%
+        </div>
+      </div>
+      <div class="border rounded p-3 bg-light text-center">
+        <h6 class="fw-bold">Merma % Presupuesto</h6>
+        <p class="mb-0 fw-bold">{{ presupuesto_total|floatformat:2 }}%</p>
+      </div>
+      <div class="border rounded p-3 bg-light text-center mt-3">
+        <h6 class="fw-bold">Merma % Zona</h6>
+        <p class="mb-0 fw-bold">{{ merma_total_zona_pct|floatformat:2 }}%</p>
+      </div>
+    </div>
+
+    <!-- Columna 2: Valores en $ -->
+    <div class="col-md-4 mb-3">
+      <div class="border rounded p-3 bg-light text-center mb-3">
+        <h6 class="fw-bold text-danger">Merma $ Sucursal</h6>
+        <p class="mb-0 fw-bold text-danger-emphasis">
+          $ {{ merma_total_sucursal|floatformat:0|intcomma }}
+        </p>
+      </div>
+      <div class="border rounded p-3 bg-light text-center mt-3">
+        <h6 class="fw-bold">Merma $ Zona</h6>
+        <p class="mb-0 fw-bold">
+          $ {{ merma_total_zona|floatformat:0|intcomma }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Columna 3: Ajustadas / No ajustadas -->
+    <div class="col-md-4 mb-3">
+      <div class="border rounded p-3 bg-light text-center mb-3">
+        <h6 class="fw-bold text-success">Merma AJU %</h6>
+        <p class="mb-0 fw-bold">{{ porcentaje_aju|floatformat:1 }}%</p>
+      </div>
+      <div class="border rounded p-3 bg-light text-center mt-3">
+        <h6 class="fw-bold text-warning">Merma NO AJU %</h6>
+        <p class="mb-0 fw-bold">{{ porcentaje_no_aju|floatformat:1 }}%</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    {% for card in sectores %}
+    <div class="col-md-6 col-lg-4 mb-4">
+      {% include 'visor/partials/card_sector.html' with card=card %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% load humanize %}
+
+<div>
+  <div class="card shadow-sm h-100" style="min-height: 240px;">  <!-- Ajusta el alto según necesidad -->
+    <div class="card-body d-flex flex-column justify-content-between">
+      <div>
+        <h5 class="card-title text-primary">{{ card.nombre }}</h5>
+        <ul class="list-unstyled mb-0">
+          <li><strong>Merma $:</strong> $ {{ card.monto_mermas|floatformat:0|intcomma }}</li>
+          <li><strong>% AJU:</strong> {{ card.porc_aju|floatformat:1 }}%</li>
+          <li><strong>% NO AJU:</strong> {{ card.porc_no_aju|floatformat:1 }}%</li>
+          <li><strong>% Merma s/Ventas:</strong> {{ card.porc_merma_venta|floatformat:2 }}%</li>
+          <li><strong>% Presupuesto:</strong> {{ card.presupuesto|floatformat:2 }}%</li>
+          <li><strong>Diferencia:</strong> {{ card.dif_porc|floatformat:2 }}%</li>
+          <li><strong>Desvío $:</strong> $ {{ card.dif_monto|floatformat:0|intcomma }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
