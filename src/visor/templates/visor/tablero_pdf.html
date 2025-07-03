@@ -1,0 +1,133 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Tablero de Mermas PDF</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 10pt;
+      margin: 1cm;
+    }
+
+    .header {
+      margin-bottom: 20px;
+    }
+
+    .title {
+      font-size: 18pt;
+      font-weight: bold;
+    }
+
+    .subtitle {
+      font-size: 12pt;
+      margin-top: 4px;
+    }
+
+    .card {
+      width: 19%;
+      float: left;
+      border: 1px solid #000;
+      padding: 6px;
+      margin: 0.5%;
+      box-sizing: border-box;
+    }
+
+    .card h4 {
+      font-size: 10pt;
+      margin: 0 0 4px;
+      text-align: center;
+    }
+
+    .value {
+      font-size: 14pt;
+      font-weight: bold;
+      text-align: center;
+      margin: 6px 0;
+      padding: 4px;
+    }
+
+    .bg-success { background-color: #198754; color: white; }
+    .bg-warning { background-color: #ffc107; color: black; }
+    .bg-danger { background-color: #dc3545; color: white; }
+
+    .table {
+      width: 100%;
+      font-size: 9pt;
+    }
+
+    .table td {
+      padding: 2px 4px;
+    }
+
+    .footer {
+      clear: both;
+      margin-top: 30px;
+      font-size: 9pt;
+    }
+
+    .fw-bold { font-weight: bold; }
+    .text-end { text-align: right; }
+    .text-start { text-align: left; }
+    .text-center { text-align: center; }
+
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title">Sucursal: {{ sucursal.codigo }} {{ sucursal.nombre }}</div>
+  <div class="subtitle">Zona: {{ zona.nombre }}</div>
+</div>
+
+{% for card in sectores %}
+  {% if not card.es_oculto %}
+    <div class="card">
+      <h4>{{ card.nombre }}</h4>
+      <div class="value 
+          {% if card.alerta_merma == 'success' %}bg-success
+          {% elif card.alerta_merma == 'warning' %}bg-warning
+          {% else %}bg-danger
+          {% endif %}">
+        {{ card.porc_merma_venta|floatformat:2 }}%
+      </div>
+      <table class="table">
+        <tr>
+          <td class="fw-bold text-start">Presupuesto</td>
+          <td class="text-end">{{ card.presupuesto|floatformat:2 }}%</td>
+        </tr>
+        <tr>
+          <td class="fw-bold text-start">Diferencia</td>
+          <td class="text-end">{{ card.dif_porc|floatformat:2 }}%</td>
+        </tr>
+        <tr>
+          <td class="fw-bold text-start">Merma $</td>
+          <td class="text-end">$ {{ card.monto_mermas|floatformat:0|intcomma }}</td>
+        </tr>
+        <tr>
+          <td class="fw-bold text-start">Desvío $</td>
+          <td class="text-end">$ {{ card.dif_monto|floatformat:0|intcomma }}</td>
+        </tr>
+        <tr>
+          <td class="fw-bold text-start">AJU</td>
+          <td class="text-end">{{ card.porc_aju|floatformat:1 }}%</td>
+        </tr>
+        <tr>
+          <td class="fw-bold text-start">NO AJU</td>
+          <td class="text-end">{{ card.porc_no_aju|floatformat:1 }}%</td>
+        </tr>
+      </table>
+    </div>
+  {% endif %}
+{% endfor %}
+
+<div class="footer">
+  <p><strong>Definiciones:</strong></p>
+  <p><strong>AJU:</strong> Es el ajuste de stock que nos genera la merma conocida por tipo y motivo:<br>
+  ROTURAS, ELABORACIÓN, PÉRDIDA DE FRÍO, VENCIMIENTO, ROBOS, DESGRASE / TROZADO, FALLAS, EXHIBICIÓN.</p>
+  <p><strong>NO AJU:</strong> Incluye el AJR (Ajuste de Recuento), donde queda toda aquella merma no reconocida.</p>
+</div>
+
+</body>
+</html>

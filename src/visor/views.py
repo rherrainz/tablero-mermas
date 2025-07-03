@@ -5,11 +5,15 @@ from django.core.files.storage import default_storage
 from django.contrib import messages
 import pandas as pd
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from utils.plan_loader import cargar_plan_desde_excel
 from pathlib import Path
 from utils.mermas_loader import cargar_mermas_sucursal, cargar_mermas_zona
 from mermas.models import MermaSucursal, MermaZona, Sector
+from django.template.loader import get_template
+from django.conf import settings
+from xhtml2pdf import pisa
+import io
 
 
 def index(request):
@@ -103,6 +107,7 @@ def ver_datos_sucs(request):
         "sucursales_detectadas": sucursales[:10],  # mostramos los primeros 10
     })
 
+
 def tablero_sucursal(request, codigo):
     # Obtener sucursal y zona asociada
     sucursal = get_object_or_404(Sucursal, codigo=codigo)
@@ -113,6 +118,9 @@ def tablero_sucursal(request, codigo):
 
     # Traer mermas de zona por sector para la comparación
     mermas_zona = MermaZona.objects.filter(zona=zona)
+
+    # Sectores excluidos del cálculo de mermas
+    SECTORES_EXCLUIDOS = ["INSUMOS", "PANADERIA", "ROTISERIA Y PASTAS"]
 
     # Armar lista de sectores con los datos que necesita cada card
     sectores_data = []
@@ -127,8 +135,11 @@ def tablero_sucursal(request, codigo):
         ).first()
         presupuesto = plan.porcentaje if plan else 0
 
-        diferencia_porcentual = merma_s.porcentaje_mermas_sobre_venta - presupuesto
-        diferencia_monetaria = merma_s.monto_mermas - (presupuesto * merma_s.monto_venta / 100)
+        diferencia_porcentual = merma_s.porcentaje_mermas_sobre_venta*100-presupuesto
+        diferencia_monetaria = merma_s.monto_mermas - \
+            (presupuesto * merma_s.monto_venta / 100)
+
+        es_oculto = sector.nombre.upper() in SECTORES_EXCLUIDOS
 
         sectores_data.append({
             'nombre': sector.nombre,
@@ -137,15 +148,23 @@ def tablero_sucursal(request, codigo):
             'porc_no_aju': merma_s.porcentaje_mermas_no_ajustadas * 100,
             'porc_merma_venta': merma_s.porcentaje_mermas_sobre_venta * 100,
             'presupuesto': presupuesto,
-            'dif_porc': diferencia_porcentual * 100,
+            'dif_porc': diferencia_porcentual,
             'dif_monto': diferencia_monetaria,
+            # o directamente diferencia_monetaria negativa
+            'desvio_presupuestario': presupuesto * merma_s.monto_venta / 100,
+            'alerta_merma': (
+                "success" if diferencia_porcentual >= 0
+                else "warning" if diferencia_porcentual >= -0.2  # dentro de un margen aceptable
+                else "danger"
+            ),
+            'es_oculto': es_oculto,
+
         })
 
-    # Sectores excluidos del cálculo de mermas
-    SECTORES_EXCLUIDOS = ["INSUMOS", "PANADERIA", "ROTISERIA Y PASTAS"]
-
-    mermas_suc_filtradas = [m for m in mermas_suc if m.sector.nombre.upper() not in SECTORES_EXCLUIDOS]
-    mermas_zona_filtradas = [m for m in mermas_zona if m.sector.nombre.upper() not in SECTORES_EXCLUIDOS]
+    mermas_suc_filtradas = [
+        m for m in mermas_suc if m.sector.nombre.upper() not in SECTORES_EXCLUIDOS]
+    mermas_zona_filtradas = [
+        m for m in mermas_zona if m.sector.nombre.upper() not in SECTORES_EXCLUIDOS]
 
     # Ventas totales (sucursal y zona)
     total_ventas_suc = sum(m.monto_venta for m in mermas_suc)
@@ -156,32 +175,43 @@ def tablero_sucursal(request, codigo):
     total_merma_zona = sum(m.monto_mermas for m in mermas_zona_filtradas)
 
     # Mermas totales (%)
-    total_merma_suc_pct = (total_merma_suc / total_ventas_suc) * 100 if total_ventas_suc else 0
-    total_merma_zona_pct = (total_merma_zona / total_ventas_zona) * 100 if total_ventas_zona else 0
+    total_merma_suc_pct = (
+        total_merma_suc / total_ventas_suc) * 100 if total_ventas_suc else 0
+    total_merma_zona_pct = (
+        total_merma_zona / total_ventas_zona) * 100 if total_ventas_zona else 0
 
     # Mermas ajustadas y no ajustadas
     total_aju_suc = sum(m.monto_ajuste for m in mermas_suc_filtradas)
-    total_no_aju_suc = sum(m.monto_mermas_no_ajustadas for m in mermas_suc_filtradas)
+    total_no_aju_suc = sum(
+        m.monto_mermas_no_ajustadas for m in mermas_suc_filtradas)
 
-    porc_aju = (total_aju_suc / total_merma_suc) * 100 if total_merma_suc else 0
-    porc_no_aju = (total_no_aju_suc / total_merma_suc) * 100 if total_merma_suc else 0
+    porc_aju = (total_aju_suc / total_merma_suc) * \
+        100 if total_merma_suc else 0
+    porc_no_aju = (total_no_aju_suc / total_merma_suc) * \
+        100 if total_merma_suc else 0
 
     # Presupuesto total ponderado
     total_presupuesto_valorado = 0
     for m in mermas_suc_filtradas:
-        plan = PlanMerma.objects.filter(sucursal=sucursal.codigo, sector=m.sector.codigo).first()
+        plan = PlanMerma.objects.filter(
+            sucursal=sucursal.codigo, sector=m.sector.codigo).first()
         if plan:
             total_presupuesto_valorado += plan.porcentaje * m.monto_venta / 100
 
-    presupuesto_total_pct = (total_presupuesto_valorado / total_ventas_suc) * 100 if total_ventas_suc else 0
+    presupuesto_total_pct = (
+        total_presupuesto_valorado / total_ventas_suc) * 100 if total_ventas_suc else 0
 
     # Estado de alerta
-    if total_merma_suc_pct <= presupuesto_total_pct:
+    diferencia_total_pct = presupuesto_total_pct - total_merma_suc_pct
+
+    if diferencia_total_pct <= 0:
         alerta_merma_pct = "success"
-    elif total_merma_suc_pct <= presupuesto_total_pct + 20:
+    elif diferencia_total_pct <= -0.2:
         alerta_merma_pct = "warning"
     else:
         alerta_merma_pct = "danger"
+
+    sucursales = sorted(Sucursal.objects.all(), key=lambda s: int(s.codigo))
 
     return render(request, "visor/tablero.html", {
         'sucursal': sucursal,
@@ -195,4 +225,20 @@ def tablero_sucursal(request, codigo):
         'porcentaje_aju': porc_aju,
         'porcentaje_no_aju': porc_no_aju,
         'alerta_merma_pct': alerta_merma_pct,
+        'sucursales': sucursales,
     })
+
+def exportar_pdf_tablero(request, codigo):
+    response = tablero_sucursal(request, codigo)
+    template = get_template("visor/tablero_pdf.html")
+    html = template.render(response.context_data)
+
+    result = io.BytesIO()
+    pdf = pisa.CreatePDF(io.StringIO(html), dest=result)
+
+    if pdf.err:
+        return HttpResponse("Error generando PDF", status=500)
+    
+    response = HttpResponse(result.getvalue(), content_type="application/pdf")
+    response['Content-Disposition'] = f'attachment; filename="tablero_sucursal_{codigo}.pdf"'
+    return response

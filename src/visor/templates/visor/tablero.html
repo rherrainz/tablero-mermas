@@ -1,63 +1,125 @@
 {% extends "visor/base.html" %} {% load humanize %} {% block content %}
+
 <div class="container mt-4">
-  <h2 class="mb-4">
-    Tablero de Mermas - Sucursal {{ sucursal.codigo }} {{ sucursal.nombre }}
-    (Zona {{ zona.nombre }})
-  </h2>
-  <div class="row mb-4">
-    <!-- Columna 1: Porcentajes -->
-    <div class="col-md-4 mb-3">
-      <div class="border rounded p-3 bg-light text-center mb-3">
-        <h6 class="fw-bold">Merma % Sucursal</h6>
-        <div class="alert alert-{{ alerta_merma_pct }} py-1 mb-0 fw-bold">
-          {{ merma_total_sucursal_pct|floatformat:2 }}%
-        </div>
-      </div>
-      <div class="border rounded p-3 bg-light text-center">
-        <h6 class="fw-bold">Merma % Presupuesto</h6>
-        <p class="mb-0 fw-bold">{{ presupuesto_total|floatformat:2 }}%</p>
-      </div>
-      <div class="border rounded p-3 bg-light text-center mt-3">
-        <h6 class="fw-bold">Merma % Zona</h6>
-        <p class="mb-0 fw-bold">{{ merma_total_zona_pct|floatformat:2 }}%</p>
-      </div>
-    </div>
-
-    <!-- Columna 2: Valores en $ -->
-    <div class="col-md-4 mb-3">
-      <div class="border rounded p-3 bg-light text-center mb-3">
-        <h6 class="fw-bold text-danger">Merma $ Sucursal</h6>
-        <p class="mb-0 fw-bold text-danger-emphasis">
-          $ {{ merma_total_sucursal|floatformat:0|intcomma }}
-        </p>
-      </div>
-      <div class="border rounded p-3 bg-light text-center mt-3">
-        <h6 class="fw-bold">Merma $ Zona</h6>
-        <p class="mb-0 fw-bold">
-          $ {{ merma_total_zona|floatformat:0|intcomma }}
-        </p>
-      </div>
-    </div>
-
-    <!-- Columna 3: Ajustadas / No ajustadas -->
-    <div class="col-md-4 mb-3">
-      <div class="border rounded p-3 bg-light text-center mb-3">
-        <h6 class="fw-bold text-success">Merma AJU %</h6>
-        <p class="mb-0 fw-bold">{{ porcentaje_aju|floatformat:1 }}%</p>
-      </div>
-      <div class="border rounded p-3 bg-light text-center mt-3">
-        <h6 class="fw-bold text-warning">Merma NO AJU %</h6>
-        <p class="mb-0 fw-bold">{{ porcentaje_no_aju|floatformat:1 }}%</p>
-      </div>
-    </div>
+  <div class="sticky-top bg-white z-3 py-2">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-3">
+  <div>
+    <h2 class="mb-1">Sucursal: {{ sucursal.codigo }} {{ sucursal.nombre }}</h2>
+    <h5 class="mb-0">Zona: {{ zona.nombre }} </h5>
+    <h5 class="mb-0">   Región: {{ zona.region }}</h5>
   </div>
-
-  <div class="row">
-    {% for card in sectores %}
-    <div class="col-md-6 col-lg-4 mb-4">
-      {% include 'visor/partials/card_sector.html' with card=card %}
-    </div>
-    {% endfor %}
+  <a href="{% url 'exportar_pdf_tablero' sucursal.codigo %}" class="btn btn-outline-danger">
+  📄 Exportar como PDF
+  </a>
+  <div>
+    <label for="selectorSucursal" class="form-label fw-bold me-2">Seleccionar Suc:</label>
+    <select id="selectorSucursal" class="form-select d-inline-block w-auto"
+            onchange="window.location.href=this.value">
+      {% for s in sucursales %}
+        <option value="{% url 'tablero_sucursal' s.codigo %}"
+                {% if s.codigo == sucursal.codigo %}selected{% endif %}>
+          {{ s.codigo }} - {{ s.nombre }}
+        </option>
+      {% endfor %}
+    </select>
   </div>
 </div>
+  <!-- Fila de resumen -->
+
+  <div class="row mb-4 ">
+  <!-- Columna 1: Merma % Sucursal vs Presupuesto + Zona -->
+  <div class="col-md-4 mb-3">
+    <div class="border rounded bg-light text-center p-3 h-100">
+      <!-- Encabezado: Real vs Presupuesto -->
+      <div class="row fw-bold text-uppercase small">
+        <div class="col border-end">Real</div>
+        <div class="col">Presupuesto</div>
+      </div>
+      <!-- Datos principales -->
+      <div class="row fw-bold mb-3">
+        <div class="col border-end">
+          <div class="alert alert-{{ alerta_merma_pct }} mb-0 fs-2">
+            {{ merma_total_sucursal_pct|floatformat:2 }}%
+          </div>
+        </div>
+        <div class="col d-flex align-items-center justify-content-center fs-4">
+          {{ presupuesto_total|floatformat:2 }}%
+        </div>
+      </div>
+      <!-- Merma % Zona -->
+      <div class="row mt-3 border-top pt-2">
+        <div class="col-6 text-start fw-bold">Merma % Zona</div>
+        <div class="col-6 text-end fw-bold">{{ merma_total_zona_pct|floatformat:2 }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna 2: Merma $ Sucursal + Zona alineadas -->
+  <div class="col-md-4 mb-3">
+    <div class="border rounded bg-light p-3 h-100">
+      <div class="row mb-2 border-bottom pb-2">
+        <div class="col-7 fw-bold text-uppercase">Merma $ Sucursal</div>
+        <div class="col-5 text-end text-danger-emphasis fw-bold">
+          $ {{ merma_total_sucursal|floatformat:0|intcomma }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-7 fw-bold text-uppercase">Merma $ Zona</div>
+        <div class="col-5 text-end fw-bold">
+          $ {{ merma_total_zona|floatformat:0|intcomma }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna 3: Merma Reconocida -->
+  <div class="col-md-4 mb-3">
+    <div class="border rounded bg-light text-center p-3 h-100">
+      <h6 class="fw-bold text-uppercase mb-2">Merma Reconocida</h6>
+      <div class="row small fw-bold text-secondary">
+        <div class="col">Merma AJU</div>
+        <div class="col">Merma NO AJU</div>
+      </div>
+      <div class="row fs-5 fw-bold">
+        <div class="col">{{ porcentaje_aju|floatformat:1 }}%</div>
+        <div class="col">{{ porcentaje_no_aju|floatformat:1 }}%</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+  <!-- Switch para mostrar sectores ocultos -->
+  <div class="form-check form-switch mb-3">
+    <input class="form-check-input" type="checkbox" id="toggleOcultos" />
+    <label class="form-check-label" for="toggleOcultos">
+      Mostrar sectores ocultos (Insumos, Panadería, Rotisería)
+    </label>
+    <div class="row">
+      {% for card in sectores %}
+      <div
+        class="col-md-6 col-lg-4 mb-4 sector-card {% if card.es_oculto %}oculto{% endif %}"
+      >
+        {% include 'visor/partials/card_sector.html' with card=card %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .oculto {
+    display: none;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggle = document.getElementById("toggleOcultos");
+    toggle.addEventListener("change", function () {
+      document.querySelectorAll(".sector-card.oculto").forEach(function (el) {
+        el.style.display = toggle.checked ? "block" : "none";
+      });
+    });
+  });
+</script>
 {% endblock %}
