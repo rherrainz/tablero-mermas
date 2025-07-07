@@ -1,133 +1,363 @@
 {% load humanize %}
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Tablero de Mermas PDF</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      font-size: 10pt;
-      margin: 1cm;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tablero PDF - Sucursal {{ sucursal.codigo }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        margin: 15px;
+      }
 
-    .header {
-      margin-bottom: 20px;
-    }
+      h1 {
+        text-align: center;
+        margin-bottom: 16px;
+        font-size: 16px;
+      }
+      h2 {
+        text-align: center;
+        margin-bottom: 12px;
+        font-size: 14px;
+      }
 
-    .title {
-      font-size: 18pt;
-      font-weight: bold;
-    }
+      #btn-exportar {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 8px 12px;
+        font-size: 12px;
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
 
-    .subtitle {
-      font-size: 12pt;
-      margin-top: 4px;
-    }
+      @media print {
+        #btn-exportar {
+          display: none;
+        }
+      }
 
-    .card {
-      width: 19%;
-      float: left;
-      border: 1px solid #000;
-      padding: 6px;
-      margin: 0.5%;
-      box-sizing: border-box;
-    }
+      .grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: space-between;
+      }
 
-    .card h4 {
-      font-size: 10pt;
-      margin: 0 0 4px;
-      text-align: center;
-    }
+      .card {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        width: 19%;
+        padding: 6px;
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+        box-sizing: border-box;
+        min-height: 170px;
+      }
 
-    .value {
-      font-size: 14pt;
-      font-weight: bold;
-      text-align: center;
-      margin: 6px 0;
-      padding: 4px;
-    }
+      .card-title {
+        text-align: center;
+        font-weight: bold;
+        font-size: 11px;
+        background-color: #e9ecef;
+        padding: 4px;
+        border-radius: 4px;
+        margin-bottom: 4px;
+      }
 
-    .bg-success { background-color: #198754; color: white; }
-    .bg-warning { background-color: #ffc107; color: black; }
-    .bg-danger { background-color: #dc3545; color: white; }
+      .merma-box {
+        text-align: center;
+        font-weight: bold;
+        font-size: 16px;
+        padding: 6px;
+        margin: 4px 0;
+        border-radius: 6px;
+        color: white;
+      }
 
-    .table {
-      width: 100%;
-      font-size: 9pt;
-    }
+      .success {
+        background-color: #28a745;
+      }
+      .warning {
+        background-color: #ffc107;
+        color: #000;
+      }
+      .danger {
+        background-color: #dc3545;
+      }
 
-    .table td {
-      padding: 2px 4px;
-    }
+      .datos {
+        width: 100%;
+        font-size: 10px;
+        margin-top: 4px;
+      }
 
-    .footer {
-      clear: both;
-      margin-top: 30px;
-      font-size: 9pt;
-    }
+      .datos td {
+        padding: 1px 2px;
+      }
 
-    .fw-bold { font-weight: bold; }
-    .text-end { text-align: right; }
-    .text-start { text-align: left; }
-    .text-center { text-align: center; }
+      .resumen {
+        margin-top: 20px;
+        font-size: 11px;
+      }
 
-  </style>
-</head>
-<body>
+      .resumen p {
+        margin: 3px 0;
+      }
+      .resumen-grid {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
 
-<div class="header">
-  <div class="title">Sucursal: {{ sucursal.codigo }} {{ sucursal.nombre }}</div>
-  <div class="subtitle">Zona: {{ zona.nombre }}</div>
-</div>
+      .resumen-box {
+        flex: 1;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background-color: #f8f9fa;
+        padding: 8px;
+        font-size: 11px;
+      }
 
-{% for card in sectores %}
-  {% if not card.es_oculto %}
-    <div class="card">
-      <h4>{{ card.nombre }}</h4>
-      <div class="value 
-          {% if card.alerta_merma == 'success' %}bg-success
-          {% elif card.alerta_merma == 'warning' %}bg-warning
-          {% else %}bg-danger
-          {% endif %}">
-        {{ card.porc_merma_venta|floatformat:2 }}%
+      .resumen-titulo {
+        text-align: center;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        font-size: 12px;
+      }
+
+      .resumen-fila {
+        display: flex;
+        justify-content: space-between;
+        margin: 2px 0;
+        font-weight: bold;
+      }
+
+      .resumen-valores {
+        display: flex;
+        justify-content: space-between;
+        margin: 6px 0;
+        font-weight: bold;
+        font-size: 14px;
+      }
+
+      .alerta-box {
+        padding: 4px 6px;
+        border-radius: 4px;
+        color: white;
+        width: 48%;
+        text-align: center;
+      }
+
+      .alerta-box.success {
+        background-color: #28a745;
+      }
+      .alerta-box.warning {
+        background-color: #ffc107;
+        color: #000;
+      }
+      .alerta-box.danger {
+        background-color: #dc3545;
+      }
+
+      .presupuesto-box {
+        width: 48%;
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      .resumen-numero {
+        text-align: right;
+        font-weight: bold;
+      }
+
+      .resumen-numero.rojo {
+        color: #dc3545;
+      }
+
+      .subtitulo {
+        border-top: 1px solid #ccc;
+        padding-top: 4px;
+        font-size: 10px;
+      }
+      .definiciones {
+        border: 1px solid #000;
+        padding: 10px;
+        margin-top: 20px;
+        font-size: 10px;
+        page-break-inside: avoid;
+      }
+
+      .definiciones h3 {
+        text-align: center;
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .definiciones .rojo {
+        color: #b00000;
+      }
+
+      .definiciones .motivos {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin: 6px 0;
+        font-weight: bold;
+        color: #0d4d71;
+      }
+      .centrado {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="btn-exportar" onclick="exportarPDF()">Exportar como PDF</button>
+
+    <div id="contenido-pdf">
+      <h1>
+        Tablero de Mermas – Sucursal {{ sucursal.codigo }} - {{ sucursal.nombre }}
+      </h1>
+      <h2 class="centrado">
+        Zona: {{ zona.nombre }} - Región: {{ zona.region }}
+      </h2>
+      <div class="resumen-grid">
+        <!-- Columna 1 -->
+        <div class="resumen-box">
+          <div class="resumen-titulo">REAL VS PRESUPUESTO</div>
+          <div class="resumen-fila">
+            <div>Real</div>
+            <div>Presupuesto</div>
+          </div>
+          <div class="resumen-valores">
+            <div class="alerta-box {{ alerta_merma_pct }}">
+              {{ merma_total_sucursal_pct|floatformat:2 }}%
+            </div>
+            <div class="presupuesto-box">
+              {{ presupuesto_total|floatformat:2 }}%
+            </div>
+          </div>
+          <div class="resumen-fila subtitulo">
+            <div>Merma % Zona</div>
+            <div>{{ merma_total_zona_pct|floatformat:2 }}%</div>
+          </div>
+        </div>
+
+        <!-- Columna 2 -->
+        <div class="resumen-box">
+          <div class="resumen-titulo">MERMA $</div>
+          <div class="resumen-fila">
+            <div>Merma $ Sucursal</div>
+            <div class="resumen-numero rojo">
+              $ {{ merma_total_sucursal|floatformat:0|intcomma }}
+            </div>
+          </div>
+          <div class="resumen-fila">
+            <div>Merma $ Zona</div>
+            <div class="resumen-numero">
+              $ {{ merma_total_zona|floatformat:0|intcomma }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna 3 -->
+        <div class="resumen-box">
+          <div class="resumen-titulo">MERMA RECONOCIDA</div>
+          <div class="resumen-fila">
+            <div>Merma AJU</div>
+            <div>Merma NO AJU</div>
+          </div>
+          <div class="resumen-valores">
+            <div>{{ porcentaje_aju|floatformat:1 }}%</div>
+            <div>{{ porcentaje_no_aju|floatformat:1 }}%</div>
+          </div>
+        </div>
       </div>
-      <table class="table">
-        <tr>
-          <td class="fw-bold text-start">Presupuesto</td>
-          <td class="text-end">{{ card.presupuesto|floatformat:2 }}%</td>
-        </tr>
-        <tr>
-          <td class="fw-bold text-start">Diferencia</td>
-          <td class="text-end">{{ card.dif_porc|floatformat:2 }}%</td>
-        </tr>
-        <tr>
-          <td class="fw-bold text-start">Merma $</td>
-          <td class="text-end">$ {{ card.monto_mermas|floatformat:0|intcomma }}</td>
-        </tr>
-        <tr>
-          <td class="fw-bold text-start">Desvío $</td>
-          <td class="text-end">$ {{ card.dif_monto|floatformat:0|intcomma }}</td>
-        </tr>
-        <tr>
-          <td class="fw-bold text-start">AJU</td>
-          <td class="text-end">{{ card.porc_aju|floatformat:1 }}%</td>
-        </tr>
-        <tr>
-          <td class="fw-bold text-start">NO AJU</td>
-          <td class="text-end">{{ card.porc_no_aju|floatformat:1 }}%</td>
-        </tr>
-      </table>
+
+      <div class="grid">
+        {% for card in sectores %} {% if not card.es_oculto %}
+        <div class="card">
+          <div class="card-title">{{ card.nombre }}</div>
+          <div class="merma-box {{ card.alerta_merma }}">
+            {{ card.porc_merma_venta|floatformat:2 }}%
+          </div>
+          <div style="text-align: center; font-size: 11px">Merma en %</div>
+          <table class="datos">
+            <tr>
+              <td>Presupuesto</td>
+              <td style="text-align: right">
+                {{ card.presupuesto|floatformat:2 }}%
+              </td>
+            </tr>
+            <tr>
+              <td>Diferencia</td>
+              <td
+                style="text-align: right"
+                class="{% if card.dif_porc >= 0 %}success{% elif card.dif_porc >= -0.2 %}warning{% else %}danger{% endif %}"
+              >
+                {{ card.dif_porc|floatformat:2 }}%
+              </td>
+            </tr>
+            <tr>
+              <td>Merma $</td>
+              <td style="text-align: right">
+                $ {{ card.monto_mermas|floatformat:0|intcomma }}
+              </td>
+            </tr>
+            <tr>
+              <td>Desvío $</td>
+              <td style="text-align: right">
+                $ {{ card.dif_monto|floatformat:0|intcomma }}
+              </td>
+            </tr>
+          </table>
+        </div>
+        {% endif %} {% endfor %}
+      </div>
+      <div class="definiciones">
+        <h3>Definiciones</h3>
+        <p class="centrado">
+          <strong class="rojo">AJU:</strong> Es el ajuste de Stock que nos
+          genera la merma conocida por tipo y motivo.
+        </p>
+        <div class="motivos">
+          <span>ROTURAS</span>
+          <span>VENCIMIENTO</span>
+          <span>FALLAS</span>
+          <span>ELABORACIÓN</span>
+          <span>ROBOS</span>
+          <span>EXHIBICIÓN</span>
+          <span>PÉRDIDA DE FRÍO</span>
+          <span>DESGRASE / TROZADO</span>
+        </div>
+        <p class="centrado">
+          <strong class="rojo">NO AJU:</strong> incluye el AJR (Ajuste de
+          Recuento), en el mismo queda toda aquella merma no reconocida.
+        </p>
+      </div>
     </div>
-  {% endif %}
-{% endfor %}
 
-<div class="footer">
-  <p><strong>Definiciones:</strong></p>
-  <p><strong>AJU:</strong> Es el ajuste de stock que nos genera la merma conocida por tipo y motivo:<br>
-  ROTURAS, ELABORACIÓN, PÉRDIDA DE FRÍO, VENCIMIENTO, ROBOS, DESGRASE / TROZADO, FALLAS, EXHIBICIÓN.</p>
-  <p><strong>NO AJU:</strong> Incluye el AJR (Ajuste de Recuento), donde queda toda aquella merma no reconocida.</p>
-</div>
-
-</body>
+    <script>
+      function exportarPDF() {
+        const element = document.getElementById("contenido-pdf");
+        const opt = {
+          margin: 0.3,
+          filename: "tablero_sucursal_{{ sucursal.codigo }}.pdf",
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: "in", format: "a4", orientation: "landscape" },
+        };
+        html2pdf().set(opt).from(element).save();
+      }
+    </script>
+  </body>
 </html>

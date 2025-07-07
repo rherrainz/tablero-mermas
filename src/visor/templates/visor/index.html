@@ -3,29 +3,32 @@
 {% block title %}Inicio{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Seleccioná una sucursal</h1>
+<h4 class="mb-4">Tablero de Mermas</h4>
 
 <form onsubmit="return redirigirSucursal()" class="row g-3">
   <div class="col-md-6">
-    <select id="sucursalSelect" class="form-select" required>
-      <option value="">Elegí una sucursal...</option>
-      {% for suc in sucursales %}
-        <option value="{{ suc.suc_id }}">{{ suc.suc_id }} - {{ suc.nombre }}</option>
-      {% endfor %}
-    </select>
+<select id="sucursalSelect" class="form-select" required>
+  <option value="">Elegí una sucursal...</option>
+  {% for suc in sucursales %}
+    <option value="{{ suc.codigo }}">{{ suc.codigo }} - {{ suc.nombre }}</option>
+  {% endfor %}
+</select>
   </div>
   <div class="col-md-2">
     <button type="submit" class="btn btn-primary">Ir</button>
   </div>
 </form>
 
+
 <script>
   function redirigirSucursal() {
     const codigo = document.getElementById("sucursalSelect").value;
     if (codigo) {
-      window.location.href = `/sucursal/${codigo}/`;
+      const url = "{% url 'tablero_sucursal' 'CODIGO_SUC' %}".replace("CODIGO_SUC", codigo);
+      window.location.href = url;
     }
-    return false; // Previene que se recargue la página
+    return false;
   }
 </script>
+
 {% endblock %}

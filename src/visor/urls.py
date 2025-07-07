@@ -7,5 +7,5 @@ urlpatterns = [
     path('cargar/', views.cargar_excel, name='cargar_excel'),
     path('ver_datos_sucs/', views.ver_datos_sucs, name='ver_datos_sucs'),
     path('tablero/<str:codigo>/', views.tablero_sucursal, name='tablero_sucursal'),
-    path('tablero/<str:codigo>/exportar_pdf/', views.exportar_pdf_tablero, name='exportar_pdf_tablero'),
+    path("tablero/pdf/<str:codigo>/", views.tablero_pdf, name="tablero_pdf"),
 ]

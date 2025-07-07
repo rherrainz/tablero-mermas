@@ -1,0 +1,58 @@
+{% load static %}
+<div class="sticky-top bg-white z-3 shadow-sm">
+  <!-- Encabezado superior -->
+  <div class="bg-white border-bottom py-3">
+    <div class="container d-flex align-items-center">
+      <img
+        src="{% static 'visor/img/logo.png' %}"
+        alt="Logo"
+        style="height: 40px"
+        class="me-3"
+      />
+      <h1 class="h4 m-0 text-primary fw-bold">
+        Panel de Control de Operaciones
+      </h1>
+    </div>
+  </div>
+
+  <!-- Navbar horizontal con menú alineado a la izquierda -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarContenido"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarContenido">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item dropdown">
+            <a
+              class="nav-link dropdown-toggle text-white fw-bold"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+            >
+              Tablero de Mermas
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" href="{% url 'index' %}"
+                  >Seleccionar Sucursal</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'cargar_excel' %}"
+                  >Cargar Archivos</a
+                >
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</div>
