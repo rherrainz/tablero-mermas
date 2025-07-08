@@ -5,6 +5,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('visor.urls')),
+    path("ventas/", include("ventas.urls")),
 ]
 
 from django.conf import settings

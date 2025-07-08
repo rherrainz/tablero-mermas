@@ -1,0 +1,25 @@
+{% extends "visor/base.html" %}
+{% block title %}Cargar Ventas{% endblock %}
+
+{% block content %}
+  <h4 class="mb-4">Cargar archivo de ventas</h4>
+
+  <form method="post" enctype="multipart/form-data" class="row g-3">
+    {% csrf_token %}
+    <div class="col-md-6">
+      <label for="archivoVentas" class="form-label">Seleccioná el archivo Excel de ventas:</label>
+      <input type="file" class="form-control" id="archivoVentas" name="archivo_ventas" accept=".xlsx" required>
+    </div>
+    <div class="col-md-2 align-self-end">
+      <button type="submit" class="btn btn-success">Subir archivo</button>
+    </div>
+  </form>
+
+  {% if messages %}
+    <div class="mt-4">
+      {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}

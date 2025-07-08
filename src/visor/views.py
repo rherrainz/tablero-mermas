@@ -17,7 +17,7 @@ from django.template.loader import render_to_string
 
 
 def index(request):
-    sucursales = Sucursal.objects.all().order_by('codigo')
+    sucursales = sorted(Sucursal.objects.all(), key=lambda s: int(s.codigo))
     return render(request, 'visor/index.html', {'sucursales': sucursales})
 
 
@@ -80,32 +80,42 @@ def cargar_excel(request):
 
 
 def ver_datos_sucs(request):
+    from openpyxl import load_workbook  # asegúrate de tenerlo instalado
     ruta_excel = settings.MEDIA_ROOT / "datos_sucs.xlsx"
 
-    # Leemos la hoja correspondiente
-    df = pd.read_excel(ruta_excel, sheet_name=None)  # para ver las hojas
-    hojas = list(df.keys())
+    # Paso 1: detectar nombre de la primera hoja
+    try:
+        df_preview = pd.read_excel(ruta_excel, sheet_name=None)
+        hojas = list(df_preview.keys())
+        hoja_sucs = hojas[0]  # usamos la primera hoja directamente
+    except Exception as e:
+        return JsonResponse({"error": f"No se pudo leer el archivo: {str(e)}"})
 
-    # Probamos con la hoja que contenga "sucs"
-    hoja_sucs = next((h for h in hojas if "suc" in h.lower()), None)
+    # Paso 2: leer la hoja sin encabezado para detectar dónde empiezan los datos
+    try:
+        df_crudo = pd.read_excel(ruta_excel, sheet_name=hoja_sucs, header=None)
+        fila_inicio = df_crudo[df_crudo.iloc[:, 0].notna()].index[0]
+    except Exception as e:
+        return JsonResponse({"error": f"No se pudo detectar el inicio de datos: {str(e)}"})
 
-    if not hoja_sucs:
-        return JsonResponse({"error": "No se encontró la hoja de sucursales"})
-
-    datos = pd.read_excel(ruta_excel, sheet_name=hoja_sucs, skiprows=6)
-
-    # Filtramos las filas que tengan código de sucursal
-    datos = datos[datos.iloc[:, 0].notna()]
-    datos = datos.rename(columns={datos.columns[0]: "sucursal"})
-
-    # Agrupamos por sucursal (solo para ver qué hay)
-    sucursales = datos["sucursal"].unique().tolist()
+    # Paso 3: volver a leer desde esa fila como encabezado
+    try:
+        datos = pd.read_excel(ruta_excel, sheet_name=hoja_sucs, skiprows=fila_inicio)
+        datos = datos[datos.iloc[:, 0].notna()]
+        datos = datos.rename(columns={datos.columns[0]: "sucursal"})
+        sucursales = datos["sucursal"].unique().tolist()
+    except Exception as e:
+        return JsonResponse({"error": f"No se pudo procesar la hoja: {str(e)}"})
 
     return JsonResponse({
         "hoja_detectada": hoja_sucs,
+        "fila_inicio_detectada": int(fila_inicio) + 1,
         "cantidad_registros": len(datos),
-        "sucursales_detectadas": sucursales[:10],  # mostramos los primeros 10
+        "sucursales_detectadas": sucursales[:10]
     })
+
+
+
 
 def get_context_tablero_sucursal(codigo):
     sucursal = get_object_or_404(Sucursal, codigo=codigo)

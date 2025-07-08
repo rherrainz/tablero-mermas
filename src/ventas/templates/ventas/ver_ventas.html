@@ -1,0 +1,232 @@
+{% extends "visor/base.html" %}
+{% load humanize filtros_dict %}
+
+{% block title %}Evolución de Ventas{% endblock %}
+
+{% block content %}
+<h4 class="mb-4">Evolución de Ventas por Sector - {{ mes_nombre }}</h4>
+
+<form method="get" class="row g-3 mb-4">
+  <div class="col-md-4">
+    <label for="sucursal" class="form-label">Sucursal</label>
+    <select name="sucursal" id="sucursal" class="form-select" required>
+      {% for suc in sucursales %}
+        <option value="{{ suc.codigo }}" {% if suc.codigo == selected_sucursal %}selected{% endif %}>
+          {{ suc.codigo }} - {{ suc.nombre }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label for="mes" class="form-label">Mes</label>
+    <select name="mes" id="mes" class="form-select" required>
+      {% for codigo, nombre in meses %}
+        <option value="{{ codigo }}" {% if codigo == selected_mes %}selected{% endif %}>
+          {{ nombre }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2 d-flex align-items-end">
+    <button type="submit" class="btn btn-primary w-100">Ver</button>
+  </div>
+</form>
+
+<!-- 📊 Tabla de ventas -->
+<div class="table-responsive mb-5">
+  <table class="table table-bordered table-sm align-middle">
+    <thead class="table-light text-center">
+      <tr>
+        <th>Sector</th>
+        {% for ano in anos %}
+          <th>{{ ano }}</th>
+        {% endfor %}
+        <th>% Últ. Año</th><th></th>
+        <th>% Vs Mejor</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+  {# 🔹 Filas de sectores normales #}
+  {% for fila in tabla %}
+    {% if fila.codigo != "TOT" %}
+    <tr>
+      <td><strong>{{ fila.codigo }}</strong> - {{ fila.sector }}</td>
+      {% for ano in anos %}
+        {% with valor=fila|dictkey:ano %}
+          {% if valor == fila.max_valor %}
+            <td class="text-end bg-success-subtle">{{ valor|floatformat:0|intcomma }}</td>
+          {% elif valor == fila.min_valor %}
+            <td class="text-end bg-danger-subtle">{{ valor|floatformat:0|intcomma }}</td>
+          {% else %}
+            <td class="text-end">{{ valor|floatformat:0|intcomma }}</td>
+          {% endif %}
+        {% endwith %}
+      {% endfor %}
+      <td class="text-end">
+        {% if fila.var_ult_anio is not None %}
+          {{ fila.var_ult_anio|floatformat:1 }}%
+        {% else %}-{% endif %}
+      </td>
+      <td class="text-center">
+        {% if fila.var_ult_anio is not None %}
+          {% if fila.var_ult_anio < 0 %}
+            <i class="bi bi-arrow-down-square-fill text-danger fw-bold"></i>
+          {% elif fila.var_ult_anio > 0 %}
+            <i class="bi bi-arrow-up-square-fill text-success fw-bold"></i>
+          {% endif %}
+        {% endif %}
+      </td>
+      <td class="text-end">
+        {% if fila.var_vs_mejor is not None %}
+          {{ fila.var_vs_mejor|floatformat:1 }}%
+        {% else %}-{% endif %}
+      </td>
+      <td class="text-center">
+        {% if fila.var_vs_mejor is not None %}
+          {% if fila.var_vs_mejor < 0 %}
+            <i class="bi bi-arrow-down-square-fill text-danger fw-bold"></i>
+          {% elif fila.var_vs_mejor > 0 %}
+            <i class="bi bi-arrow-up-square-fill text-success fw-bold"></i>
+          {% endif %}
+        {% endif %}
+      </td>
+    </tr>
+    {% endif %}
+  {% endfor %}
+
+  {# 🔸 Fila de totales: Sector TOT al final #}
+  {% for fila in tabla %}
+    {% if fila.codigo == "TOT" %}
+    <tr class="table-light fw-bold">
+      <td><strong>{{ fila.codigo }}</strong> - {{ fila.sector }}</td>
+      {% for ano in anos %}
+        <td class="text-end">{{ fila|dictkey:ano|floatformat:0|intcomma }}</td>
+      {% endfor %}
+      <td class="text-end">
+        {% if fila.var_ult_anio is not None %}
+          {{ fila.var_ult_anio|floatformat:1 }}%
+        {% else %}-{% endif %}
+      </td>
+      <td class="text-center">
+        {% if fila.var_ult_anio is not None %}
+          {% if fila.var_ult_anio < 0 %}
+            <i class="bi bi-arrow-down-square-fill text-danger fw-bold"></i>
+          {% elif fila.var_ult_anio > 0 %}
+            <i class="bi bi-arrow-up-square-fill text-success fw-bold"></i>
+          {% endif %}
+        {% endif %}
+      </td>
+      <td class="text-end">
+        {% if fila.var_vs_mejor is not None %}
+          {{ fila.var_vs_mejor|floatformat:1 }}%
+        {% else %}-{% endif %}
+      </td>
+      <td class="text-center">
+        {% if fila.var_vs_mejor is not None %}
+          {% if fila.var_vs_mejor < 0 %}
+            <i class="bi bi-arrow-down-square-fill text-danger fw-bold"></i>
+          {% elif fila.var_vs_mejor > 0 %}
+            <i class="bi bi-arrow-up-square-fill text-success fw-bold"></i>
+          {% endif %}
+        {% endif %}
+      </td>
+    </tr>
+    {% endif %}
+  {% endfor %}
+</tbody>
+
+
+
+  </table>
+</div>
+
+<!-- 📈 Gráfico de líneas -->
+<div class="mb-5">
+  <h5 class="mb-3">Evolución mensual por sector</h5>
+  <div class="mb-3">
+  <label class="form-label fw-bold">Mostrar/Ocultar sectores:</label>
+  <div id="checkboxContainer" class="d-flex flex-wrap gap-2"></div>
+</div>
+  <canvas id="ventasChart" height="100"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const labels = {{ chart_labels|safe }};
+  const rawData = [
+    {% for serie in chart_series %}
+    {
+      label: "{{ serie.label }}",
+      data: {{ serie.data|safe }},
+      fill: false,
+      borderWidth: 1,
+      tension: 0.3,
+      hidden: {{ serie.hidden|yesno:"true,false" }}
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+
+  const ctx = document.getElementById('ventasChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: rawData
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: { mode: 'index', intersect: false },
+      },
+      interaction: {
+        mode: 'nearest',
+        axis: 'x',
+        intersect: false
+      },
+      scales: {
+        y: {
+          title: { display: true, text: 'Unidades Vendidas' },
+          beginAtZero: true
+        },
+        x: {
+          title: { display: true, text: 'Mes' }
+        }
+      }
+    }
+  });
+
+  // 🎯 Checkboxes para activar/desactivar sectores
+  const container = document.getElementById('checkboxContainer');
+
+  rawData.forEach((dataset, index) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = "form-check form-check-inline";
+
+    const input = document.createElement('input');
+    input.className = "form-check-input";
+    input.type = "checkbox";
+    input.id = `dataset-${index}`;
+    input.checked = !dataset.hidden;
+
+    input.addEventListener('change', () => {
+      chart.getDatasetMeta(index).hidden = !input.checked;
+      chart.update();
+    });
+
+    const label = document.createElement('label');
+    label.className = "form-check-label";
+    label.htmlFor = input.id;
+    label.innerText = dataset.label;
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(label);
+    container.appendChild(wrapper);
+  });
+</script>
+
+
+
+
+
+{% endblock %}

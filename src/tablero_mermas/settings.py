@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'visor',
     'mermas',
     'django.contrib.humanize',
+    'ventas',
 ]
 
 MIDDLEWARE = [

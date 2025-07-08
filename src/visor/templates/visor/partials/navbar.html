@@ -29,6 +29,7 @@
 
       <div class="collapse navbar-collapse" id="navbarContenido">
         <ul class="navbar-nav me-auto">
+          <!-- Tablero de Mermas -->
           <li class="nav-item dropdown">
             <a
               class="nav-link dropdown-toggle text-white fw-bold"
@@ -40,14 +41,38 @@
             </a>
             <ul class="dropdown-menu">
               <li>
-                <a class="dropdown-item" href="{% url 'index' %}"
-                  >Seleccionar Sucursal</a
-                >
+                <a class="dropdown-item" href="{% url 'index' %}">
+                  Seleccionar Sucursal
+                </a>
               </li>
               <li>
-                <a class="dropdown-item" href="{% url 'cargar_excel' %}"
-                  >Cargar Archivos</a
-                >
+                <a class="dropdown-item" href="{% url 'cargar_excel' %}">
+                  Cargar Archivos
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Ventas -->
+          <li class="nav-item dropdown">
+            <a
+              class="nav-link dropdown-toggle text-white fw-bold"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+            >
+              Ventas
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" href="{% url 'cargar_ventas' %}">
+                  Cargar Ventas
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'ver_ventas' %}">
+                  Evolución Ventas
+                </a>
               </li>
             </ul>
           </li>

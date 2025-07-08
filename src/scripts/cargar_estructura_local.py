@@ -1,6 +1,13 @@
+import os
+import django
 import pandas as pd
 from pathlib import Path
 from visor.models import Region, Zona, Sucursal
+
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tablero.settings')  # <--- nombre del proyecto, ajustalo si es distinto
+django.setup()
+
 
 archivo = Path('media/estructura_local.xlsx')
 
