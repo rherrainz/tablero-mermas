@@ -1,0 +1,177 @@
+{% extends "visor/base.html" %}
+{% load filtros_dict %}
+{% load humanize %}
+
+{% block title %}Comparar Ventas por Sucursal{% endblock %}
+
+{% block content %}
+<h4 class="mb-4">Comparativa de Ventas - {{ mes_nombre }}</h4>
+
+<form method="get" class="row g-3 mb-4">
+  <div class="col-md-4">
+    <label for="zona" class="form-label">Zona</label>
+    <select name="zona" id="zona" class="form-select" required>
+      {% for z in zonas %}
+        <option value="{{ z.codigo }}" {% if z.codigo == selected_zona %}selected{% endif %}>
+          {{ z.codigo }} - {{ z.nombre }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4">
+    <label for="sector" class="form-label">Sector</label>
+    <select name="sector" id="sector" class="form-select" required>
+      {% for s in sectores %}
+        <option value="{{ s.codigo }}" {% if s.codigo == selected_sector %}selected{% endif %}>
+          {{ s.codigo }} - {{ s.nombre }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <label for="mes" class="form-label">Mes</label>
+    <select name="mes" id="mes" class="form-select" required>
+      {% for codigo, nombre in meses %}
+        <option value="{{ codigo }}" {% if codigo == selected_mes %}selected{% endif %}>
+          {{ nombre }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2 d-flex align-items-end">
+    <button type="submit" class="btn btn-primary w-100">Ver</button>
+  </div>
+</form>
+
+{% if datos %}
+  <div class="table-responsive">
+    <table class="table table-bordered table-sm align-middle">
+      <thead class="table-light text-center">
+        <tr>
+          <th>Sucursal</th>
+          {% for a in anos %}
+            <th>{{ a }}</th>
+          {% endfor %}
+          <th>% Últ. Año</th><th></th>
+          <th>% Vs Mejor</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in datos %}
+          {% if item.codigo != "TOT" %}
+            <tr>
+              <td>{{ item.codigo }} - {{ item.nombre }}</td>
+              {% for a in anos %}
+                {% with valor=item|dictkey:a %}
+                  {% if valor == item.max_valor %}
+                    <td class="text-end bg-success-subtle">{{ valor|floatformat:0|intcomma }}</td>
+                  {% elif valor == item.min_valor %}
+                    <td class="text-end bg-danger-subtle">{{ valor|floatformat:0|intcomma }}</td>
+                  {% else %}
+                    <td class="text-end">{{ valor|floatformat:0|intcomma }}</td>
+                  {% endif %}
+                {% endwith %}
+              {% endfor %}
+              <td class="text-end">
+                {% if item.var_ult_anio is not None %}
+                  {{ item.var_ult_anio|floatformat:1 }}%
+                {% else %}-{% endif %}
+              </td>
+              <td class="text-center">
+                {% if item.var_ult_anio is not None %}
+                  {% if item.var_ult_anio < 0 %}
+                    <i class="bi bi-arrow-down-square-fill text-danger fw-bold"></i>
+                  {% elif item.var_ult_anio > 0 %}
+                    <i class="bi bi-arrow-up-square-fill text-success fw-bold"></i>
+                  {% endif %}
+                {% endif %}
+              </td>
+              <td class="text-end">
+                {% if item.var_vs_mejor is not None %}
+                  {{ item.var_vs_mejor|floatformat:1 }}%
+                {% else %}-{% endif %}
+              </td>
+              <td class="text-center">
+                {% if item.var_vs_mejor is not None %}
+                  {% if item.var_vs_mejor < 0 %}
+                    <i class="bi bi-arrow-down-square-fill text-danger fw-bold"></i>
+                  {% elif item.var_vs_mejor > 0 %}
+                    <i class="bi bi-arrow-up-square-fill text-success fw-bold"></i>
+                  {% endif %}
+                {% endif %}
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+
+        {# Fila final de totales #}
+        {% for item in datos %}
+          {% if item.codigo == "TOT" %}
+            <tr class="table-light fw-bold">
+              <td>{{ item.codigo }} - {{ item.nombre }}</td>
+              {% for a in anos %}
+                <td class="text-end">{{ item|dictkey:a|floatformat:0|intcomma }}</td>
+              {% endfor %}
+              <td class="text-end">
+                {% if item.var_ult_anio is not None %}
+                  {{ item.var_ult_anio|floatformat:1 }}%
+                {% else %}-{% endif %}
+              </td>
+              <td class="text-center">
+                {% if item.var_ult_anio is not None %}
+                  {% if item.var_ult_anio < 0 %}
+                    <i class="bi bi-arrow-down-square-fill text-danger fw-bold"></i>
+                  {% elif item.var_ult_anio > 0 %}
+                    <i class="bi bi-arrow-up-square-fill text-success fw-bold"></i>
+                  {% endif %}
+                {% endif %}
+              </td>
+              <td class="text-end">
+                {% if item.var_vs_mejor is not None %}
+                  {{ item.var_vs_mejor|floatformat:1 }}%
+                {% else %}-{% endif %}
+              </td>
+              <td class="text-center">
+                {% if item.var_vs_mejor is not None %}
+                  {% if item.var_vs_mejor < 0 %}
+                    <i class="bi bi-arrow-down-square-fill text-danger fw-bold"></i>
+                  {% elif item.var_vs_mejor > 0 %}
+                    <i class="bi bi-arrow-up-square-fill text-success fw-bold"></i>
+                  {% endif %}
+                {% endif %}
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+<canvas id="graficoComparativo" height="100"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const labels = {{ chart_labels|safe }};
+  const dataSeries = {
+    labels: labels,
+    datasets: {{ chart_series|safe }}
+  };
+
+  const config = {
+    type: 'line',
+    data: dataSeries,
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: { display: true, text: 'Evolución por Sucursal - {{ mes_nombre }}' }
+      }
+    }
+  };
+
+  new Chart(
+    document.getElementById('graficoComparativo'),
+    config
+  );
+</script>
+{% endblock %}
