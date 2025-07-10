@@ -1,14 +1,16 @@
-from django.shortcuts import render, redirect
-from ventas.models import VentaMensual
-from visor.models import Sucursal, Zona
-from mermas.models import Sector
-from django.conf import settings
-from django.core.files.storage import default_storage
-from django.contrib import messages
-from pathlib import Path
-from utils.ventas_loader import cargar_ventas_desde_excel
 from datetime import datetime
 import json
+from pathlib import Path
+
+from django.conf import settings
+from django.contrib import messages
+from django.core.files.storage import default_storage
+from django.shortcuts import render, redirect
+
+from mermas.models import Sector
+from ventas.models import VentaMensual
+from visor.models import Sucursal, Zona
+from utils.ventas_loader import cargar_ventas_desde_excel
 
 MESES = {
     "01": "Enero", "02": "Febrero", "03": "Marzo",
@@ -217,35 +219,3 @@ def comparar_sucursales(request):
 
     def mes_legible(m):
         return f"{MESES[m[4:]]} {m[:4]}"
-
-    labels_legibles = [mes_legible(m) for m in meses_disponibles]
-
-    series = []
-    for fila in datos:
-        hidden = fila["codigo"] == "TOT"
-        valores = []
-        for m in meses_disponibles:
-            venta = ventas_zona.filter(sector=sector_obj, sucursal__codigo=fila["codigo"], mes=m).first()
-            valores.append(venta.unidades if venta else 0)
-
-        series.append({
-            "label": f"{fila['codigo']} - {fila['nombre']}",
-            "data": valores,
-            "hidden": hidden
-        })
-
-    context = {
-        "zonas": zonas,
-        "sectores": sectores,
-        "meses": MESES.items(),
-        "selected_zona": selected_zona,
-        "selected_sector": selected_sector,
-        "selected_mes": selected_mes,
-        "mes_nombre": MESES[selected_mes],
-        "anos": anos,
-        "datos": datos,
-        "chart_labels": json.dumps(labels_legibles),
-        "chart_series": json.dumps(series),
-    }
-
-    return render(request, "ventas/comparar_sucursales.html", context)
