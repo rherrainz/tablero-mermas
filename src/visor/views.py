@@ -1,25 +1,26 @@
 import os
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Sucursal, PlanMerma
-from django.core.files.storage import default_storage
-from django.contrib import messages
+from pathlib import Path
+
 import pandas as pd
 from django.conf import settings
+from django.contrib import messages
+from django.core.files.storage import default_storage
 from django.http import JsonResponse, HttpResponse
-from utils.plan_loader import cargar_plan_desde_excel
-from pathlib import Path
-from utils.mermas_loader import cargar_mermas_sucursal, cargar_mermas_zona
-from mermas.models import MermaSucursal, MermaZona, Sector
-from django.template.loader import get_template
-from django.conf import settings
-import pdfkit
-from django.template.loader import render_to_string
+from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import get_template, render_to_string
 
+from .models import Sucursal, PlanMerma, Zona
+from mermas.models import MermaSucursal, MermaZona, Sector
+from utils.plan_loader import cargar_plan_desde_excel
+from utils.mermas_loader import cargar_mermas_sucursal, cargar_mermas_zona
+
+
+def index_tablero(request):
+    sucursales = sorted(Sucursal.objects.all(), key=lambda s: int(s.codigo))
+    return render(request, 'visor/index_tablero.html', {'sucursales': sucursales})
 
 def index(request):
-    sucursales = sorted(Sucursal.objects.all(), key=lambda s: int(s.codigo))
-    return render(request, 'visor/index.html', {'sucursales': sucursales})
-
+    return render(request, "visor/index.html")
 
 def sucursal_view(request, codigo):
     return render(request, 'visor/sucursal.html', {'codigo': codigo})
@@ -210,3 +211,93 @@ def tablero_sucursal(request, codigo):
 def tablero_pdf(request, codigo):
     contexto = get_context_tablero_sucursal(codigo)
     return render(request, "visor/tablero_pdf.html", contexto)
+
+def comparar_mermas_sucursales(request):
+    zonas = Zona.objects.all()
+    sectores = Sector.objects.all().order_by("codigo")
+
+    selected_zona = request.GET.get("zona") or zonas.first().codigo
+    selected_sector = request.GET.get("sector") or sectores.first().codigo
+
+    zona = Zona.objects.get(codigo=selected_zona)
+    sector = Sector.objects.get(codigo=selected_sector)
+    sucursales = Sucursal.objects.filter(zona=zona)
+
+    datos = []
+
+    for suc in sucursales:
+        merma_s = MermaSucursal.objects.filter(sucursal=suc, sector=sector).first()
+        plan = PlanMerma.objects.filter(sucursal=suc.codigo, sector=sector.codigo).first()
+
+        if not merma_s:
+            continue
+
+        presupuesto = plan.porcentaje if plan else 0
+        dif_porc = merma_s.porcentaje_mermas_sobre_venta * 100 - presupuesto
+        dif_monto = merma_s.monto_mermas - (presupuesto * merma_s.monto_venta / 100)
+
+        datos.append({
+            "codigo": suc.codigo,
+            "nombre": suc.nombre,
+            "monto_mermas": merma_s.monto_mermas,
+            "porc_merma_venta": merma_s.porcentaje_mermas_sobre_venta * 100,
+            "presupuesto": presupuesto,
+            "dif_porc": dif_porc,
+            "dif_monto": dif_monto,
+            "alerta": (
+                "success" if dif_porc >= 0 else
+                "warning" if dif_porc >= -0.2 else
+                "danger"
+            ),
+        })
+
+    context = {
+        "zonas": zonas,
+        "sectores": sectores,
+        "selected_zona": selected_zona,
+        "selected_sector": selected_sector,
+        "datos": datos,
+    }
+
+    return render(request, "visor/comparar_sucursales.html", context)
+
+
+def comparar_mermas_zonas(request):
+    sectores = Sector.objects.all().order_by("codigo")
+    selected_sector = request.GET.get("sector") or sectores.first().codigo
+    sector = Sector.objects.get(codigo=selected_sector)
+
+    zonas = Zona.objects.all()
+    datos = []
+
+    for zona in zonas:
+        merma_z = MermaZona.objects.filter(zona=zona, sector=sector).first()
+        if not merma_z:
+            continue
+
+        monto_total = merma_z.monto_mermas
+        venta_total = merma_z.monto_venta
+        porc_merma = (monto_total / venta_total) * 100 if venta_total else 0
+
+        alerta = (
+            "success" if porc_merma <= 1 else
+            "warning" if porc_merma <= 2 else
+            "danger"
+        )
+
+        datos.append({
+            "zona": f"{zona.codigo} - {zona.nombre}",
+            "monto_mermas": monto_total,
+            "porc_aju": merma_z.porcentaje_ajuste_sobre_merma * 100,
+            "porc_no_aju": merma_z.porcentaje_mermas_no_ajustadas * 100,
+            "porc_merma_venta": porc_merma,
+            "alerta_merma": alerta,
+        })
+
+    context = {
+        "sectores": sectores,
+        "selected_sector": selected_sector,
+        "datos": datos,
+    }
+
+    return render(request, "visor/comparar_zonas.html", context)

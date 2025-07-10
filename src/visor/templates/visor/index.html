@@ -1,34 +1,19 @@
 {% extends "visor/base.html" %}
-
-{% block title %}Inicio{% endblock %}
+{% load static %}
 
 {% block content %}
-<h4 class="mb-4">Tablero de Mermas</h4>
-
-<form onsubmit="return redirigirSucursal()" class="row g-3">
-  <div class="col-md-6">
-<select id="sucursalSelect" class="form-select" required>
-  <option value="">Elegí una sucursal...</option>
-  {% for suc in sucursales %}
-    <option value="{{ suc.codigo }}">{{ suc.codigo }} - {{ suc.nombre }}</option>
-  {% endfor %}
-</select>
-  </div>
-  <div class="col-md-2">
-    <button type="submit" class="btn btn-primary">Ir</button>
-  </div>
-</form>
-
-
-<script>
-  function redirigirSucursal() {
-    const codigo = document.getElementById("sucursalSelect").value;
-    if (codigo) {
-      const url = "{% url 'tablero_sucursal' 'CODIGO_SUC' %}".replace("CODIGO_SUC", codigo);
-      window.location.href = url;
-    }
-    return false;
-  }
-</script>
-
+<div class="container mt-5 text-center">
+  <h2 class="mb-4">Bienvenido al Panel de Control de Operaciones</h2>
+    <img src="{% static 'visor/img/logo-panel.png' %}" alt="Logo" class="mb-4" style="height: 250px;">
+  <p class="lead">
+    Este panel reúne herramientas clave para el seguimiento y análisis de indicadores operativos.
+  </p>
+  <p>
+    Utilizá el menú de navegación para acceder a los tableros disponibles:
+    control de mermas por sucursal y zona, evolución de ventas, comparativas por sector y mucho más.
+  </p>
+  <p class="text-muted">
+    Si necesitás asistencia o querés proponer mejoras, contactate con el equipo de desarrollo.
+  </p>
+</div>
 {% endblock %}

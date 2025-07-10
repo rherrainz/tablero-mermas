@@ -1,0 +1,51 @@
+{% extends "visor/base.html" %}
+{% load humanize %}
+
+{% block title %}Comparativa de Mermas por Zona{% endblock %}
+
+{% block content %}
+<h4 class="mb-4">Comparativa de Mermas por Zona</h4>
+
+<form method="get" class="row g-3 mb-4">
+  <div class="col-md-4">
+    <label for="sector" class="form-label">Sector</label>
+    <select name="sector" id="sector" class="form-select" required>
+      {% for s in sectores %}
+        <option value="{{ s.codigo }}" {% if s.codigo == selected_sector %}selected{% endif %}>
+          {{ s.codigo }} - {{ s.nombre }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2 d-flex align-items-end">
+    <button type="submit" class="btn btn-primary w-100">Ver</button>
+  </div>
+</form>
+
+{% if datos %}
+  <div class="table-responsive">
+    <table class="table table-bordered table-sm align-middle">
+      <thead class="table-light text-center">
+        <tr>
+          <th>Zona</th>
+          <th>Monto Mermas</th>
+          <th>% Mermas / Venta</th>
+          <th>% Ajustadas</th>
+          <th>% No Ajustadas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in datos %}
+        <tr class="text-end">
+          <td class="text-start">{{ item.zona }}</td>
+          <td>{{ item.monto_mermas|floatformat:0|intcomma }}</td>
+          <td>{{ item.porc_merma_venta|floatformat:2 }}%</td>
+          <td>{{ item.porc_aju|floatformat:2 }}%</td>
+          <td>{{ item.porc_no_aju|floatformat:2 }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}
