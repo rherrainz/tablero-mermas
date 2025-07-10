@@ -1,0 +1,36 @@
+{% extends 'visor/base.html' %}
+{% block content %}
+<div class="container my-2">
+    <h2 class="mb-4">Panel de Control de Operaciones</h2>
+    <p class="lead">El <strong>Panel de Control de Operaciones</strong> es una aplicación web desarrollada en <strong>Django</strong> y <strong>Bootstrap</strong> que permite centralizar información operativa clave de una cadena de supermercados. Reemplaza múltiples archivos Excel dispersos con una interfaz web amigable, adaptable a distintos dispositivos y enfocada en la toma de decisiones basadas en datos.</p>
+    <h3 class="mt-3">Funcionalidades principales</h3>
+    <ul>
+        <li><strong>Tablero de Mermas</strong>: visualización por sucursal, zona y sector; comparativa contra presupuestos; desvíos en pesos y porcentaje; exportación a PDF en formato A3 horizontal.</li>
+        <li><strong>Evolución de Ventas</strong>: carga y visualización de ventas históricas por sector y sucursal (últimos 5 años); tablas con totales y variaciones interanuales; gráficos de líneas comparativos por sector.</li>
+        <li><strong>Carga de Datos vía Excel</strong>: plan de mermas, datos reales por sucursal y zona, ventas históricas, con formatos preestablecidos.</li>
+        <li><strong>Diseño Responsive</strong>: interfaz optimizada para PC, tablets y dispositivos móviles/PDA.</li>
+        <li><strong>Compromiso con el Triple Impacto</strong>: acceso inmediato a información clave y reducción de impresiones y uso de papel.</li>
+    </ul>
+    <h3 class="mt-3">Tecnologías utilizadas</h3>
+    <ul>
+        <li><strong>Backend</strong>: Django/Python, SQLite/PostgreSQL</li>
+        <li><strong>Frontend</strong>: Bootstrap, HTML, JS, html2pdf.js</li>
+        <li><strong>Visualización</strong>: Matplotlib (gráficos en backend), Recharts (opcional futuro)</li>
+        <li><strong>Otros</strong>: Pandas (procesamiento de datos), openpyxl (carga de Excel)</li>
+    </ul>
+
+        <h3 class="mt-3">Próximos pasos</h3>
+    <ul>
+        <li><strong>Carga de datos vía API</strong>: Nos permitirá actualización automática de la información</li>
+        <li><strong>Creación de perfiles de usuario</strong>: Agregamos capas de seguridad y acceso según el perfil</li>
+        <li><strong>Nuevos informes</strong>: ¡Llevando los informes actuales en Excel a un nuevo nivel!</li>
+    </ul>
+
+    <h3 class="mt-3">Licencia</h3>
+    <p>MIT</p>
+
+    <footer class="mt-5 text-muted">
+        <p>Desarrollado por <a href="https://github.com/rherrainz" target="_blank">Rodrigo Herrainz</a> 🧠💻</p>
+    </footer>
+</div>
+{% endblock %}

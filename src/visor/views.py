@@ -25,6 +25,8 @@ def index(request):
 def sucursal_view(request, codigo):
     return render(request, 'visor/sucursal.html', {'codigo': codigo})
 
+def about_panel(request):
+    return render(request, 'visor/about.html')
 
 def borrar_archivo_si_existe(nombre_archivo):
     path = os.path.join(settings.MEDIA_ROOT, nombre_archivo)

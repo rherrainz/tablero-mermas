@@ -18,80 +18,50 @@
   </div>
 
   <!-- Navbar horizontal con menú alineado a la izquierda -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarContenido"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
+ <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarContenido"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-      <div class="collapse navbar-collapse" id="navbarContenido">
-        <ul class="navbar-nav me-auto">
-          <!-- Tablero de Mermas -->
-          <li class="nav-item dropdown">
-            <a
-              class="nav-link dropdown-toggle text-white fw-bold"
-              href="#"
-              role="button"
-              data-bs-toggle="dropdown"
-            >
-              Mermas
-            </a>
-            <ul class="dropdown-menu">
-              <li>
-                <a class="dropdown-item" href="{% url 'index_tablero' %}">
-                  Tablero Mermas por Sucursal
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="{% url 'comparar_mermas_sucursales' %}">
-                  Comparar Mermas por Sucursal
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="{% url 'comparar_mermas_zonas' %}">
-                  Comparar Mermas por Zona
-                </a>
-              </li> 
-              <li>
-                <a class="dropdown-item" href="{% url 'cargar_excel' %}">
-                  Cargar Archivos
-                </a>
-              </li>
-            </ul>
-          </li>
+    <div class="collapse navbar-collapse" id="navbarContenido">
+      <ul class="navbar-nav w-100 d-flex">
+        <!-- Grupo izquierdo -->
+        <li class="nav-item dropdown me-3">
+          <a class="nav-link dropdown-toggle text-white fw-bold" href="#" role="button" data-bs-toggle="dropdown">
+            Mermas
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'index_tablero' %}">Tablero Mermas por Sucursal</a></li>
+            <li><a class="dropdown-item" href="{% url 'comparar_mermas_sucursales' %}">Comparar Mermas por Sucursal</a></li>
+            <li><a class="dropdown-item" href="{% url 'comparar_mermas_zonas' %}">Comparar Mermas por Zona</a></li>
+            <li><a class="dropdown-item" href="{% url 'cargar_excel' %}">Cargar Archivos</a></li>
+          </ul>
+        </li>
 
-          <!-- Ventas -->
-          <li class="nav-item dropdown">
-            <a
-              class="nav-link dropdown-toggle text-white fw-bold"
-              href="#"
-              role="button"
-              data-bs-toggle="dropdown"
-            >
-              Ventas
-            </a>
-            <ul class="dropdown-menu">
-              <li>
-                <a class="dropdown-item" href="{% url 'cargar_ventas' %}">
-                  Cargar Ventas
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="{% url 'ver_ventas' %}">
-                  Evolución Ventas
-                </a>
-              </li>
-                <a class="dropdown-item" href="{% url 'comparar_sucursales' %}">Comparar Sucursales</a>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </div>
+        <li class="nav-item dropdown me-auto">
+          <a class="nav-link dropdown-toggle text-white fw-bold" href="#" role="button" data-bs-toggle="dropdown">
+            Ventas
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'cargar_ventas' %}">Cargar Ventas</a></li>
+            <li><a class="dropdown-item" href="{% url 'ver_ventas' %}">Evolución Ventas</a></li>
+            <li><a class="dropdown-item" href="{% url 'comparar_sucursales' %}">Comparar Sucursales</a></li>
+          </ul>
+        </li>
+
+        <!-- Acerca de a la derecha -->
+        <li class="nav-item">
+          <a class="nav-link text-white fw-bold" href="{% url 'about_panel' %}">Acerca de</a>
+        </li>
+      </ul>
     </div>
-  </nav>
+  </div>
+</nav>
+
 </div>

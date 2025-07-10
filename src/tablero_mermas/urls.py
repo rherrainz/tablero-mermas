@@ -1,11 +1,13 @@
 
 from django.contrib import admin
 from django.urls import path, include
+from visor import views as visor
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('visor.urls')),
     path("ventas/", include("ventas.urls")),
+    path('acerca/', visor.about_panel, name='about_panel'),
 ]
 
 from django.conf import settings
