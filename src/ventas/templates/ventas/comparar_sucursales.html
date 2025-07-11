@@ -146,7 +146,9 @@
       </tbody>
     </table>
   </div>
+  
 {% endif %}
+
 <canvas id="graficoComparativo" height="100"></canvas>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -156,6 +158,7 @@
     labels: labels,
     datasets: {{ chart_series|safe }}
   };
+
 
   const config = {
     type: 'line',
@@ -168,7 +171,6 @@
       }
     }
   };
-
   new Chart(
     document.getElementById('graficoComparativo'),
     config

@@ -11,6 +11,7 @@ from mermas.models import Sector
 from ventas.models import VentaMensual
 from visor.models import Sucursal, Zona
 from utils.ventas_loader import cargar_ventas_desde_excel
+from utils.utils import get_limite_ventas
 
 MESES = {
     "01": "Enero", "02": "Febrero", "03": "Marzo",
@@ -85,8 +86,8 @@ def ver_ventas(request):
         tabla.append(fila)
 
     # Datos para gráfico
-    ultimo_ano_cerrado = now.year if now.month > 1 else now.year - 1
-    limite_yyyymm = int(f"{ultimo_ano_cerrado}{ultimo_mes_cerrado:02}")
+    limite_yyyymm = get_limite_ventas()
+    
     ventas_validas = VentaMensual.objects.filter(
         sucursal=selected_sucursal_obj,
         mes__lte=limite_yyyymm
@@ -210,12 +211,52 @@ def comparar_sucursales(request):
     datos.append(fila_total)
 
     # Datos para gráfico con todos los meses disponibles
+    limite_yyyymm = get_limite_ventas()
     ventas_zona = VentaMensual.objects.filter(
         sucursal__zona=zona_obj,
-        sector=sector_obj
+        sector=sector_obj,
+        mes__lte=limite_yyyymm
     ).order_by("mes")
 
-    meses_disponibles = sorted(set(v.mes for v in ventas_zona))
+
+    meses_disponibles = sorted(set(v.mes for v in ventas_zona), key=lambda x: int(x))
 
     def mes_legible(m):
         return f"{MESES[m[4:]]} {m[:4]}"
+
+    labels = [mes_legible(m) for m in meses_disponibles]
+
+    series = []
+    for fila in datos:
+        hidden = fila["codigo"] == "TOT"
+        valores = []
+        for m in meses_disponibles:
+            venta = VentaMensual.objects.filter(
+                sucursal__codigo=fila["codigo"],
+                sector=sector_obj,
+                mes=m
+            ).first()
+            valores.append(venta.unidades if venta else 0)
+
+        series.append({
+            "label": f'{fila["codigo"]} - {fila["nombre"]}',
+            "data": valores,
+            "hidden": hidden,
+        })
+
+    # Pasar los datos al contexto sin json.dumps
+    context = {
+        "zonas": zonas,
+        "sectores": sectores,
+        "meses": MESES.items(),
+        "selected_zona": selected_zona,
+        "selected_sector": selected_sector,
+        "selected_mes": selected_mes,
+        "mes_nombre": MESES[selected_mes],
+        "anos": anos,
+        "datos": datos,
+        "chart_labels": json.dumps(labels),
+        "chart_series": json.dumps(series),
+        
+    }
+    return render(request, "ventas/comparar_sucursales.html", context)
