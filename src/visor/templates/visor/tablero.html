@@ -148,6 +148,11 @@
 
 {% block extrascripts %}
   <script>
-    // Puedes agregar scripts adicionales aquí
+      document.addEventListener("DOMContentLoaded", function () {
+    const resumen = document.querySelector(".resumen-sucursal");
+    if (window.innerWidth < 768 && resumen) {
+      resumen.classList.remove("sticky-top");
+    }
+  });
   </script>
 {% endblock %}
