@@ -1,6 +1,7 @@
 import os
 import django
 import pandas as pd
+from django.conf import settings
 from pathlib import Path
 from visor.models import Region, Zona, Sucursal
 
@@ -9,7 +10,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tablero.settings')  # <--- nomb
 django.setup()
 
 
-archivo = Path('media/estructura_local.xlsx')
+archivo = Path(settings.BASE_DIR) / 'src' / 'media' / 'estructura_local.xlsx'
 
 # Cargar hojas
 xls = pd.ExcelFile(archivo)
