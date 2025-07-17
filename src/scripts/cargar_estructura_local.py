@@ -10,7 +10,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tablero.settings')  # <--- nomb
 django.setup()
 
 
-archivo = Path(settings.BASE_DIR) / 'src' / 'media' / 'estructura_local.xlsx'
+archivo = Path(settings.BASE_DIR) / 'media' / 'estructura_local.xlsx'
 
 # Cargar hojas
 xls = pd.ExcelFile(archivo)
