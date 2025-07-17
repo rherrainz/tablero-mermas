@@ -108,10 +108,17 @@
       .oculto {
         display: none;
       }
-      .resumen-sucursal {
-  z-index: 1;
-  top: 120px; /* Ajustar según la altura real del header+navbar */
-}
+  .resumen-sucursal {
+    z-index: 1;
+    top: 120px;
+  }
+
+  @media (max-width: 768px) {
+    .resumen-sucursal {
+      position: static !important;
+      top: auto !important;
+    }
+  }
     </style>
   </div>
 
