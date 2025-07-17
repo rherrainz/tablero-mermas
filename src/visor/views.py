@@ -5,7 +5,7 @@ import pandas as pd
 from django.conf import settings
 from django.contrib import messages
 from django.core.files.storage import default_storage
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import get_template, render_to_string
 
