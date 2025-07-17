@@ -11,6 +11,8 @@ django.setup()
 
 
 archivo = Path(settings.BASE_DIR) / 'media' / 'estructura_local.xlsx'
+if not archivo.exists():
+    raise FileNotFoundError(f"Archivo no encontrado: {archivo}")
 
 # Cargar hojas
 xls = pd.ExcelFile(archivo)
