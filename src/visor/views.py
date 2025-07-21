@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.template.loader import get_template, render_to_string
+
 
 from .models import Sucursal, PlanMerma, Zona
 from mermas.models import MermaSucursal, MermaZona, Sector
@@ -83,7 +83,6 @@ def cargar_excel(request):
 
 
 def ver_datos_sucs(request):
-    from openpyxl import load_workbook  # asegúrate de tenerlo instalado
     ruta_excel = settings.MEDIA_ROOT / "datos_sucs.xlsx"
 
     # Paso 1: detectar nombre de la primera hoja
@@ -131,7 +130,6 @@ def get_context_tablero_sucursal(codigo):
     sectores_data = []
     for merma_s in mermas_suc:
         sector = merma_s.sector
-        merma_z = mermas_zona.filter(sector=sector).first()
         plan = PlanMerma.objects.filter(sucursal=sucursal.codigo, sector=sector.codigo).first()
         presupuesto = plan.porcentaje if plan else 0
         diferencia_porcentual = merma_s.porcentaje_mermas_sobre_venta * 100 - presupuesto

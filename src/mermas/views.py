@@ -1,3 +1,1 @@
-from django.shortcuts import render
-
-# Create your views here.
+# Views for mermas app will be implemented in the future.
